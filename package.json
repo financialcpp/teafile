@@ -1,8 +1,12 @@
 {
     "name": "teafile",
     "version": "0.1.0",
-    "main": "index.js",
+    "main": "lib/index.js",
     "scripts": {
-        "dev": "node test.js"
-    }
+        "test": "mocha"
+    },
+    "devDependencies": {
+        "mocha": "^7.0.1"
+    },
+    "dependencies": {}
 }

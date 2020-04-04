@@ -1,16 +1,11 @@
-![npm](https://img.shields.io/npm/v/teafile)
-
 # teafile
-teafile - pure javascript api for the teafile format
+teafile - pure javascript library for the teafile format
+
+![npm](https://img.shields.io/npm/v/teafile)
 
 > teatime file format is designed and maintained by [DiscreteLogics](http://discretelogics.com/teafiles/). I have no affiliation with them.
 
-Keep reading if you want to learn about the following:
-
-- how to use the library 
-- what is the teafile format and use cases
-
-## how to use the library 
+## Usage
 
 ### Install
 
@@ -18,17 +13,19 @@ Keep reading if you want to learn about the following:
 npm install teafile
 ```
 
-### Read a teafile from a buffer
+### Read from buffer
 ```js
 import teafile from 'teafile'
 
-// assume you have the binary data in a buffer
-let binaryData = ArrayBuffer(length)
+// binary data could come from an api endpoint
+import axios from 'axios'
+let { data } = await axios.get(`/api/teafile/AAPL.tea`)
 
-let data = teafile.fromBuffer(binaryData)
-console.log(data)
+// data is a buffer
+let file = teafile.fromBuffer(data)
+console.log(file)
 /*
-data = {
+{
     itemDescription: "Time Price Flag",
     nameValues: {
         "Ticker": "AAPL,
@@ -47,7 +44,7 @@ data = {
 */
 ```
 
-### Write a teafile to a buffer
+### Write to buffer
 ```js
 import teafile from 'teafile'
 
@@ -57,10 +54,10 @@ file.itemDescription = "Time Price Flag"
 file.epoch(719162)
 file.nameValue("Ticker", "AAPL")
 file.nameValue("Decimals", 2)
-file.write(450959595, 23.51, 1)
-file.write(450959595, 23.51, 1)
+file.write(1581447223000, 23.51, 1) // Tuesday, February 11, 2020 6:53:43.000 PM GMT+00:00
+file.write(1581447223001, 23.52, 1) // Tuesday, February 11, 2020 6:53:43.001 PM GMT+00:00
 
-let data = file.toBuffer(file)
+let data = file.toBuffer()
 console.log(data)
 // [ <binary data> ]
 
@@ -69,10 +66,7 @@ console.log(data)
 import axios from 'axios'
 axios.post(`/endpoint/teafile`, {data})
 
-```
-
-### Pretty-print a summary of the file to the console (good for debugging)
-```js
+Pretty-print a summary
 import teafile from 'teafile'
 
 // assume you have the binary data in a buffer
@@ -103,21 +97,21 @@ data = {
 
 ```
 
-## what is the teafile format and use cases
+## What is teafile format
 
 ### TeaFile is a file format to store time series in binary flat files
 - An optional header holds a description of file contents such as a description of the item type layout (schema) and metadata (key/value pairs) as well as metadata about the format for the datetime part of the format.
-- The file format is designed to be simple so that APIs are created easily (I agree with this)
+- The file format is designed to be simple. APIs can easily be written in any language
 - DiscreteLogics publishes the format and releases APIs for C#, C++ and Python under the GPL.
   
 I'll describe at a high level, how this format stores your data and what you might want to use it for.
 
-### high-level overview of the format
-I highly encourage anyone to read the exact specification for the TeaFile format - check it out here: [http://discretelogics.com/resources/teafilespec/](http://discretelogics.com/resources/teafilespec/). I think it is written clearly and concisely.
+### High-level overview of the format
+I highly encourage anyone to read the exact specification for the TeaFile format - check it out here: [http://discretelogics.com/resources/teafilespec/](http://discretelogics.com/resources/teafilespec/). It clearly and concisely written.
 
 TeaFiles start with a header followed by optional sections, and finally the item area holding the time series data in binary format.
 
-#### header (mandatory)
+#### Header (mandatory)
 
 The header is mandatory. Any `teafile` that doesn't contain the information below in the first 32 bytes of the file is ill-formed.
 
@@ -128,7 +122,7 @@ The header is mandatory. Any `teafile` that doesn't contain the information belo
 | 8     | Item End      | Specify the byte offset that the items end at                                       |
 | 8     | Section Count | Here you specify how many *sections* follow below                                   |
 
-#### sections (optional)
+#### Sections (optional)
 
 The sections are optional. There are four section types and they cannot be repeated:
 
@@ -153,11 +147,9 @@ A section always looks like this:
 
 The *Next Section Offset* is very useful because it allows an application to jump from section to section - only parsing the metadata it's interested in and skipping anything it doesn't know how to parse (for example - applications that haven't implemented a section type parser).
 
-I won't go into detail about how each section is layed out in memory.
-
 ##### Item Section
 
-This is (in my opinion) the most important section type. It allows you to describe the your binary data and how it is layed out in memory.
+It allows you to describe your binary data and how it is layed out in memory.
 
 1. You can specify the field type. They have the following values:
 ```js
@@ -210,9 +202,11 @@ Just text describing what is in the file.
 
 ##### NameValue Section
 
-You can include a bunch of Key: Value pairs to describe your content. This is where you would jam in all your metadata about the files. 
+You can include a bunch of {Key: Value} pairs to describe your content. This is where you would jam in all your metadata about the files. 
 
-You have to specify the type of the value. One of: Int32, Double, Text, Uuid.
+You have to specify the type of the value. 
+
+One of: `Int32`, `Double`, `Text`, `Uuid`
 
 For example, if this was a stock ticker file you might have something like this:
 
@@ -225,9 +219,13 @@ For example, if this was a stock ticker file you might have something like this:
 | Decimals    | 2                                     | Int32 |
 
 
-#### item data
+#### Item data
 
 This is the bulk of the file. It's binary data. You can read the Item Section in the header to know how to parse the file. Or, if your application already knows exactly how the data is layed out, it can skip that part and just start parsing the data right away.
 
+## Use Cases
+This file format allows for different workflows and access patterns. You might have an application heavily using the NameValue section to store useful info about the data. Or, you might have an application that reads the first 32 bytes to find the offset for the data, seeks straight to that offset, and efficiently rips through millions of .tea files (for example, stock market back testing).
 
-As you can see, this file format provides freedom to allow for different workflows and access patterns. You might have an application heavily using the NameValue section to store useful info about the data that can be shown in an application. Or, you might have an application that just reads the first 32 bytes to find the offset for the data, seeks straight to that offset, and rips through the tons of .tea files (for example, stock market back testing).
+## Author
+
+William Hoyle - williamhoyle.ca
