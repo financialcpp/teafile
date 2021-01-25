@@ -1,8 +1,8 @@
-const { TeaFileImpl, Section, Header, EnhancedBuffer } = require('../lib/implementation.js')
+const { Teafile, Section, Header, EnhancedBuffer } = require('../lib')
 
 const assert = require('assert');
 
-describe('EnhancedBuffer class', function () {
+describe('class EnhancedBuffer', function () {
     describe('getters', function () {
         let buffer = new EnhancedBuffer((new Uint8Array([
             1, 2, 3, 4
@@ -47,8 +47,9 @@ describe('EnhancedBuffer class', function () {
     })
 })
 
-describe('class TeaFileImpl', function () {
+describe('class Teafile', function () {
     describe('', function () {
+    
 
     })
 })
