@@ -66,6 +66,7 @@ describe('class Header', function () {
     })
 
 })
+
 describe('class Section', function () {
     describe('function stringToBuffer', function () {
         it('ascii: should return charCode 97 for letter a', function () {
@@ -89,11 +90,36 @@ describe('class Section', function () {
     })
 
 })
+describe('class Teafile', function () {
+    describe('fromBuffer', function () {
+        it('takes a buffer', function () {
 
-// describe('read mandatory header', function () {
-//     describe('magic number', function () {
-//         it('should return 0x0d0e0a0402080500 at first 8 bytes', function () {
-//             assert.equal(0x0d0e0a0402080500, Teafile.MAGIC_NUMBER);
-//         });
-//     });
-// });
+            let tf = Teafile.fromBuffer()
+            let str = 'a'
+            let charCode = 97
+
+            let buffer = new Uint8Array(section.stringToBuffer(str))
+            let value = buffer[0]
+            assert.strictEqual(value, charCode)
+        })
+        it('utf-8: should return a buffer with [ 226, 130, 130 ] for subscript ₂', function () {
+            let section = new Section()
+            let str = '₂'
+            let testBuffer = [226, 130, 130] // this is the utf value for the subscript above
+    
+            let buffer = new Uint8Array(section.stringToBuffer(str))
+            assert.strictEqual(buffer[0] == testBuffer[0] && buffer[1] == testBuffer[1] && buffer[2] == testBuffer[2], true)
+        })
+    })
+
+})
+
+
+
+describe('read mandatory header', function () {
+    describe('magic number', function () {
+        it('should return 0x0d0e0a0402080500 at first 8 bytes', function () {
+            
+        });
+    });
+});
