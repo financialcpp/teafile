@@ -1,5 +1,7 @@
 const { Teafile, Section, Header, EnhancedBuffer } = require('../lib')
 
+const fs = require('fs')
+
 const assert = require('assert');
 
 describe('class EnhancedBuffer', function () {
@@ -47,77 +49,51 @@ describe('class EnhancedBuffer', function () {
     })
 })
 
-describe('class Teafile', function () {
-    describe('', function () {
-    
+describe('class Header', function () {
+    describe('fromBuffer', function () {
+        it('should not throw on valid buffer', function () {
 
+            /**
+             * Magic Number:    940700384497239296n
+             * Item Area Start: 32n
+             * Item Area End:   0n,
+             * Sections Count:  3n (3 sections)
+             */
+            let buffer = (new BigUint64Array([940700384497239296n, 32n, 0n, 3n])).buffer
+            
+            assert.doesNotThrow(() => Header.fromBuffer(new EnhancedBuffer(buffer)))
+        })
     })
+
 })
+describe('class Section', function () {
+    describe('function stringToBuffer', function () {
+        it('ascii: should return charCode 97 for letter a', function () {
 
-// describe('Header class', function () {
-    // describe('fromBuffer', function () {
-    // it('should return charCode 97 for letter a', function () {
+            let section = new Section()
+            let str = 'a'
+            let charCode = 97
 
-    //     Header.fromBuffer((new BigUint64Array([940700384497239296n, 32n, 0n, 3n])).buffer)
-    //     // let str = 'a'
-    //     // let charCode = 97
+            let buffer = new Uint8Array(section.stringToBuffer(str))
+            let value = buffer[0]
+            assert.strictEqual(value, charCode)
+        })
+        it('utf-8: should return a buffer with [ 226, 130, 130 ] for subscript ₂', function () {
+            let section = new Section()
+            let str = '₂'
+            let testBuffer = [226, 130, 130] // this is the utf value for the subscript above
+    
+            let buffer = new Uint8Array(section.stringToBuffer(str))
+            assert.strictEqual(buffer[0] == testBuffer[0] && buffer[1] == testBuffer[1] && buffer[2] == testBuffer[2], true)
+        })
+    })
 
-    //     // let buffer = new Uint8Array(section.stringToBuffer(str))
-    //     // let value = buffer[0]
-    //     // assert.equal(value, charCode)
-    // })
-    // })
-
-//     describe('stringToBuffer', function () {
-//         it(' should return a buffer with [ 226, 130, 130 ] for subscript ₂', function () {
-//             let section = new Section()
-//             let str = '₂'
-//             let testBuffer = [226, 130, 130]
-
-//             let buffer = new Uint8Array(section.stringToBuffer(str))
-//             let isGood = false
-//             isGood = buffer[0] == testBuffer[0]
-//             isGood = buffer[1] == testBuffer[1]
-//             isGood = buffer[2] == testBuffer[2]
-//             assert.equal(isGood, true)
-//         })
-//     })
-// })
-// describe('Section class', function () {
-//     describe('stringToBuffer', function () {
-//         it('should return charCode 97 for letter a', function () {
-
-//             let section = new Section()
-//             let str = 'a'
-//             let charCode = 97
-
-//             let buffer = new Uint8Array(section.stringToBuffer(str))
-//             let value = buffer[0]
-//             assert.equal(value, charCode)
-//         })
-//     })
-
-//     describe('stringToBuffer', function () {
-//         it(' should return a buffer with [ 226, 130, 130 ] for subscript ₂', function () {
-//             let section = new Section()
-//             let str = '₂'
-//             let testBuffer = [226, 130, 130]
-
-//             let buffer = new Uint8Array(section.stringToBuffer(str))
-//             let isGood = false
-//             isGood = buffer[0] == testBuffer[0]
-//             isGood = buffer[1] == testBuffer[1]
-//             isGood = buffer[2] == testBuffer[2]
-//             assert.equal(isGood, true)
-//         })
-//     })
-// })
+})
 
 // describe('read mandatory header', function () {
 //     describe('magic number', function () {
 //         it('should return 0x0d0e0a0402080500 at first 8 bytes', function () {
-//             assert.equal(0x0d0e0a0402080500, TeaFileImpl.MAGIC_NUMBER);
-//             assert.equal(0x0d0e0a0402080500, teafile.MAGIC_NUMBER);
+//             assert.equal(0x0d0e0a0402080500, Teafile.MAGIC_NUMBER);
 //         });
 //     });
 // });

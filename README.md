@@ -1,5 +1,9 @@
+<<<<<<< Updated upstream
 # teafile
 teafile - pure javascript library for the teafile format
+=======
+Warning: WIP, not functional yet
+>>>>>>> Stashed changes
 
 ![npm](https://img.shields.io/npm/v/teafile)
 
